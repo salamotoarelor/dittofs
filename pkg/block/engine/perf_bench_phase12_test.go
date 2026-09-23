@@ -24,7 +24,7 @@ import (
 	"lukechampine.com/blake3"
 
 	"github.com/marmos91/dittofs/pkg/block"
-	"github.com/marmos91/dittofs/pkg/block/local/memory"
+	"github.com/marmos91/dittofs/pkg/block/journal/journaltest"
 )
 
 // phase12FixtureFileSize is the seeded file size for the rand-read
@@ -132,7 +132,7 @@ func setupPerfFixture(tb testing.TB) *phase12Fixture {
 // without any network or remote-store latency.
 func newPerfTestEngine(tb testing.TB, readBufferBytes int64, prefetchWorkers int) *Store {
 	tb.Helper()
-	localStore := memory.New()
+	localStore := journaltest.New(tb)
 	fbs := newStubFileChunkStore()
 	syncer := NewRemoteSync(localStore, nil, fbs, DefaultConfig())
 

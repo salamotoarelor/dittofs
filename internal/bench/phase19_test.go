@@ -31,7 +31,7 @@ import (
 
 	"github.com/marmos91/dittofs/pkg/block"
 	"github.com/marmos91/dittofs/pkg/block/engine"
-	"github.com/marmos91/dittofs/pkg/block/local/memory"
+	"github.com/marmos91/dittofs/pkg/block/journal/journaltest"
 )
 
 // phase11BaselineRandWriteNsPerOp is the baseline ns/op for the
@@ -173,7 +173,7 @@ func runPhase19RandWriteWarmCache(t *testing.T) float64 {
 // the canonical perf-gate fixture shape.
 func newPhase19BlockStore(t *testing.T) *engine.Store {
 	t.Helper()
-	localStore := memory.New()
+	localStore := journaltest.New(t)
 	fbs := newAggregateStubFileChunkStore()
 	syncer := engine.NewRemoteSync(localStore, nil, fbs, engine.DefaultConfig())
 	bs, err := engine.New(engine.BlockStoreConfig{
