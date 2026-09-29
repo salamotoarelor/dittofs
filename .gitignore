@@ -123,6 +123,6 @@ docker-compose.override.yml
 .githooks/post-checkout
 
 # Local test harness (test/harness): run logs, service state, the macOS pynfs checkout
-test/harness/logs/
-test/harness/state/
-test/harness/tools/
+test/harness/logs
+test/harness/state
+test/harness/tools
