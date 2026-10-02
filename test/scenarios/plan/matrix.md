@@ -5,7 +5,7 @@ Which DittoFS behaviours the upstream e2e suite (`test/e2e`) covers, which ones 
 Sources:
 - **e2e suite:** a catalog of `test/e2e` built from develop `d562e665`. It has 140 test functions: 137 run by default and 3 need the `stress` tag. The Linux container run had 551 subtests, with 130 passing, 3 failing (environment) and 4 skipped.
 - **CI:** it runs the whole default suite (`go test -tags=e2e ./test/e2e/...`, `.github/workflows/e2e-tests.yml`).
-- **Scenarios:** the 38 scripts in `test/scenarios` at `d2a021bc`, with about 200 explicit assertions between them. Each is named `<number>-<what it does>-<size>.sh` (see the README); the 9x scenarios take long, so the schedule leaves them out. Every other command is a check too, because the first failing command fails a scenario.
+- **Scenarios:** the 38 scripts in `test/scenarios` at `d2a021bc`, with about 200 explicit assertions between them. `57-smb-2shares-compaction-l` was added after this snapshot, for compaction on a metadata store shared by several remotes. Each is named `<number>-<what it does>-<size>.sh` (see the README); the 9x scenarios take long, so the schedule leaves them out. Every other command is a check too, because the first failing command fails a scenario.
 
 ## Summary
 
@@ -92,7 +92,7 @@ Levels go by what a test asserts, not by its name. Where a test's own doc commen
 
 ## Scenario by scenario
 
-What each scenario checks, which e2e tests check the same thing, and what only the scenario checks. Status is on develop `18d85aec` plus the scenarios (up to `d2a021bc`), run on ditto on 2026-10-01: 16 pass, 22 fail.
+What each scenario checks, which e2e tests check the same thing, and what only the scenario checks. Status is on develop `18d85aec` plus the scenarios (up to `d2a021bc`), run on ditto on 2026-10-01: 16 pass, 22 fail. Since then, PR #2919 (`ce32f4ec`) fixed A-08: on develop `ce32f4ec`, `52-smb-2shares-small-large-gc-xs`, `55-smb-extra-share-gc-xs` and `56-smb-extra-share-gc-minimal-xs` pass (2026-10-02; 55 and 56 six times each), and so does `57-smb-2shares-compaction-l`, which lost live data before that PR.
 
 | Scenario | Status | Capabilities | Same check in e2e | Only in the scenario |
 |---|---|---|---|---|
@@ -108,6 +108,7 @@ What each scenario checks, which e2e tests check the same thing, and what only t
 | 13-smb-compression-frame-magic-xs | fails: #2897 | BS-09, BS-02, CP-07 | none | a compressed block store; a chunk that looks like a frame; found A-10 (#2923) on the way |
 | 55-smb-extra-share-gc-xs | fails: A-08 (whenever GC visits the other remote first) | MS-03, BS-05, FO-07, MS-01 | none | one delete and GC per round, so a lucky GC order rarely passes every round |
 | 56-smb-extra-share-gc-minimal-xs | fails: A-08 | MS-03 | none | the smallest reproduction: seven deletes, a GC after each |
+| 57-smb-2shares-compaction-l | passes on develop `ce32f4ec`; before PR #2919 it lost live data in 4 of 4 rounds (A-18) | MS-03, BS-02 | none | compaction on, one metadata store on three remotes; a partly live block; a reclaim past the grace, then cold reads |
 | 50-smb-2shares-one-store-gc-xs | passes | MS-02, BS-15, BS-05 | TestMultiShareIsolation, subtest SameBlockStore (no GC) | GC on one of two shares on one store; GC's bytes freed equal the bucket's change |
 | 11-smb-2stores-same-bucket-xs | fails: a second store on the same bucket and prefix is accepted (the other store's data survives GC and reclaim) | MS-07, CP-06 | none | everything |
 | 40-smb-dedup-same-content-xs | passes | BS-07, BS-02 | TestDedupRace_NFSv4_ConcurrentIdenticalWrites, TestObjectIDPopulation_NFSWriteQuiesce (nightly, never run: C-01) | dedup measured in the bucket: a copy adds nothing, new data adds its size |
@@ -194,7 +195,7 @@ Levels: **Full** means the behaviour is checked directly. **Partial** means it i
 |---|---|---|---|---|---|---|
 | MS-01 | Shares isolated, each with its own stores | Full | `TestMultiShareIsolation`, `TestMultiShareConcurrent` | Partial | two-share scenarios, `55-smb-extra-share-gc-xs`, `91-smb-125gb-file-sync-xxl` | e2e: separate memory metadata stores per share; scenarios: one metadata store |
 | MS-02 | One block store shared by several shares | Partial | `TestMultiShareIsolation` | Full | `50-smb-2shares-one-store-gc-xs` | e2e: subtest SameBlockStore, no GC; the scenario runs GC on one share |
-| MS-03 | One metadata store, two remotes: GC deletes through the owning remote | — | — | Full | `52-smb-2shares-small-large-gc-xs`, `55-smb-extra-share-gc-xs`, `56-smb-extra-share-gc-minimal-xs`; `42-smb-1share-small-large-gc-xs` as the control | A-08 / #2909, PR #2919 |
+| MS-03 | One metadata store, two remotes: GC deletes through the owning remote | — | — | Full | `52-smb-2shares-small-large-gc-xs`, `55-smb-extra-share-gc-xs`, `56-smb-extra-share-gc-minimal-xs`, `57-smb-2shares-compaction-l`; `42-smb-1share-small-large-gc-xs` as the control | A-08 / #2909, PR #2919 |
 | MS-04 | One metadata store, two remotes: same content on both shares, cold read | — | — | Full | `51-smb-2shares-same-content-xs` | A-07 / #2909 |
 | MS-05 | Share-scoped stats, offline check and warm | — | — | Full | `53-smb-2shares-share-scoped-views-xs` | #2906 |
 | MS-06 | Per-share local disk accounting with seeded ranges | — | — | Full | `54-smb-2shares-idle-disk-used-s` | #2908 at the consumer |
