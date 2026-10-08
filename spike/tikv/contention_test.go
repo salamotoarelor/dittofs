@@ -45,8 +45,15 @@ func TestCreatesInOneDirectory(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer mem.Close()
-	// SyncWrites, as RFC 16 §4.1 requires of the embedded store.
-	synced, err := badger.Open(badger.DefaultOptions(t.TempDir()).WithSyncWrites(true).WithLogger(nil))
+	// SyncWrites, as RFC 16 §4.1 requires of the embedded store. On disk, not
+	// in t.TempDir(): /tmp is a RAM disk on many Linux hosts, and a sync there
+	// costs nothing, which is what this mode exists to measure.
+	dir, err := os.MkdirTemp(envOr("SPIKE_BADGER_DIR", "."), "badger-sync-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+	synced, err := badger.Open(badger.DefaultOptions(dir).WithSyncWrites(true).WithLogger(nil))
 	if err != nil {
 		t.Fatal(err)
 	}

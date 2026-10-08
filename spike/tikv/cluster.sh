@@ -13,7 +13,9 @@ set -euo pipefail
 
 VERSION="${TIKV_VERSION:-v8.5.8}"
 RUNTIME="${CONTAINER_RUNTIME:-$(command -v docker || command -v podman)}"
-DATA="${SPIKE_DATA:-${TMPDIR:-/tmp}/dittofs-tikv-spike}"
+# On disk, not under /tmp: /tmp is a RAM disk on many Linux hosts, which hides
+# the cost of every commit's sync.
+DATA="${SPIKE_DATA:-$HOME/.cache/dittofs-tikv-spike}"
 
 pd_up() {
     mkdir -p "$DATA/pd"

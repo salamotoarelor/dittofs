@@ -16,7 +16,9 @@ set -euo pipefail
 
 VERSION="${FDB_VERSION:-7.3.77}"
 RUNTIME="${CONTAINER_RUNTIME:-$(command -v docker || command -v podman)}"
-DATA="${SPIKE_DATA:-${TMPDIR:-/tmp}/dittofs-fdb-spike}"
+# On disk, not under /tmp: /tmp is a RAM disk on many Linux hosts, which hides
+# the cost of every commit's sync.
+DATA="${SPIKE_DATA:-$HOME/.cache/dittofs-fdb-spike}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 CLIENT="${FDB_CLIENT_DIR:-${TMPDIR:-/tmp}/dittofs-fdb-client}"
 IMAGE="docker.io/foundationdb/foundationdb:$VERSION"
