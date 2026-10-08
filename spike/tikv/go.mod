@@ -1,6 +1,6 @@
 module github.com/marmos91/dittofs/spike/tikv
 
-go 1.27.1
+go 1.26.0
 
 require (
 	github.com/dgraph-io/badger/v4 v4.9.6
