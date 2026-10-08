@@ -68,6 +68,10 @@ up() {
     return 1
 }
 
+# Created here, as the user: a bind mount of a missing directory would have the
+# container runtime create it as root, and nothing after could write to it.
+mkdir -p "$DATA"
+
 case "${1:-}" in
 client) client ;;
 up) up "${2:-1}" ;;
