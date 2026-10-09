@@ -47,6 +47,7 @@ was 3 to 7 times ditto's and is not quoted.
 | 5 | Commit survives losing a process | **Yes**: each of three processes killed in turn, read back after 3.0 s, 4.4 s and 6 ms | Yes: 11.1 s |
 | 6 | Limits | 100 000 B per value, 10 000 B per key, ~10 MB per transaction (conflict ranges count), 5 s per transaction under commits | 8 MiB per entry, no limit per transaction |
 | 7 | `Now` | Monotonic, 108–207 µs per read version, but **not time**: idle versions do not move | Monotonic, 47 µs, and it is time |
+| 8 | A guard refuses a write committed after it | **No**: the guard binds only its own transaction; a writer that commits second commits. A range read conflict (`AddReadConflictRange`, or a non-snapshot range read) closes the directory-removal race | Not tested |
 
 ### 1. The guard
 
@@ -69,6 +70,24 @@ Measured (`TestQ1SharedGuard`):
 On TiKV, by contrast, a guard committed after another transaction's start fails
 that transaction's later guard, so TiKV's guards are shared only while held at
 the same time (`../tikv/README.md`, §1).
+
+### 8. Commit order
+
+Q1 measured a writer committing while a guard was open. The other order
+(`TestQ8GuardOrder`): G guards `parent` and writes `child`, W writes `parent`,
+both from snapshots taken before either commits, G committing first. **Both
+commit.** A read conflict key checks the guarding transaction's own commit,
+against writes committed before it; nothing checks a later writer against it.
+On its own that is safe, since W is simply ordered after G.
+
+It breaks RFC 7 §3.6's directory removal, which relies on the removal's write
+conflicting with a create's guard. A create that commits between the removal's
+snapshot and its commit is missed by an untracked (snapshot) emptiness scan,
+and the removal's write of the directory does not conflict with the create's
+guard: both commit, and the entry is left under a removed directory. A
+tracked range read of the entries, or a snapshot scan plus
+`AddReadConflictRange` over them, makes the removal fail `not_committed`, as it
+should. Badger behaves the same way (`pkg/metadata/kv` on `feat/kv-layer`).
 
 ### 2. Change sequence
 
