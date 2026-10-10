@@ -4,8 +4,8 @@
 > the nightly refresh job overwrites this file. Historical analysis lives in git
 > history; the CI-gating failure list lives in `KNOWN_FAILURES.md`.
 
-**Date:** 2026-10-09
-**DittoFS Commit:** 4dae556
+**Date:** 2026-10-10
+**DittoFS Commit:** 3dccc2a
 **Profile:** memory
 **Platform:** Linux x86_64 (GitHub Actions)
 **smbtorture:** smbtorture 4.22.6
